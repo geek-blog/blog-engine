@@ -1,0 +1,64 @@
+name: Deploy Blog
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Setup SSH key for private repos
+      - name: Setup SSH key
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # Fix dependencies to use GitHub SSH references instead of yalc
+      - name: Update dependencies for CI
+        run: |
+          rm -rf package-lock.json .yalc node_modules
+          npm pkg set dependencies.blog-engine="git+ssh://git@github.com/YOUR-ORG/blog-engine.git"
+          npm pkg set dependencies.blog-enhancer="git+ssh://git@github.com/YOUR-ORG/blog-enhancer.git"
+          echo "Updated package.json dependencies"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Process markdown posts
+        run: npx blog-engine process
+
+      - name: Build site
+        run: npx blog-engine build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

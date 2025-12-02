@@ -1,0 +1,6 @@
+node_modules
+dist
+.yalc
+
+# Auto-generated files
+content/posts.js

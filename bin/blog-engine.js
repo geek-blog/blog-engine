@@ -18,14 +18,44 @@ program.command('init')
   .action(async () => {
     console.log('Initializing blog content...');
     const targetDir = process.cwd();
+    const templatesDir = path.join(__dirname, '../templates');
 
-    // Create content directory
-    await fs.ensureDir(path.join(targetDir, 'content'));
-    // Create config file
-    await fs.writeFile(path.join(targetDir, 'blog.config.js'), 'export default { title: "My Blog" };');
-    // Create gitignore
-    await fs.writeFile(path.join(targetDir, '.gitignore'), 'node_modules\ndist\n.yalc\n');
-    console.log('Blog content initialized!');
+    // Create content/posts directory
+    await fs.ensureDir(path.join(targetDir, 'content/posts'));
+
+    // Copy welcome post template with date substitution
+    let welcomeContent = await fs.readFile(path.join(templatesDir, 'welcome.md'), 'utf8');
+    welcomeContent = welcomeContent.replace('{{DATE}}', new Date().toISOString().split('T')[0]);
+    await fs.writeFile(path.join(targetDir, 'content/posts/welcome.md'), welcomeContent);
+
+    // Copy blog config
+    await fs.copy(
+      path.join(templatesDir, 'blog.config.js'),
+      path.join(targetDir, 'blog.config.js')
+    );
+
+    // Copy gitignore
+    await fs.copy(
+      path.join(templatesDir, 'gitignore'),
+      path.join(targetDir, '.gitignore')
+    );
+
+    // Create GitHub Actions workflow directory and copy deploy workflow
+    await fs.ensureDir(path.join(targetDir, '.github/workflows'));
+    await fs.copy(
+      path.join(templatesDir, 'deploy.yml'),
+      path.join(targetDir, '.github/workflows/deploy.yml')
+    );
+
+    console.log('✅ Blog content initialized!');
+    console.log('\nCreated:');
+    console.log('  - content/posts/welcome.md (sample post)');
+    console.log('  - blog.config.js');
+    console.log('  - .gitignore');
+    console.log('  - .github/workflows/deploy.yml');
+    console.log('\nNext steps:');
+    console.log('  1. Run: npx blog-engine process  (generate posts.js)');
+    console.log('  2. Run: npx blog-engine dev      (start dev server)');
   });
 
 program.command('dev')
@@ -50,6 +80,17 @@ program.command('preview')
     console.log('Starting preview server...');
     const viteConfig = path.join(__dirname, '../vite.config.js');
     const child = spawn('npx', ['vite', 'preview', '--config', viteConfig], { stdio: 'inherit' });
+  });
+
+program.command('process')
+  .description('Process markdown posts into JavaScript module')
+  .action(() => {
+    console.log('Processing posts...');
+    const processScript = path.join(__dirname, 'process-posts.js');
+    const child = spawn('node', [processScript], { stdio: 'inherit' });
+    child.on('exit', (code) => {
+      process.exit(code);
+    });
   });
 
 program.parse();
