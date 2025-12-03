@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   siteName: "My Blog",
   title: "My Blog",
   description: "A blog powered by blog-engine",
