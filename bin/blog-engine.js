@@ -23,10 +23,32 @@ program.command('init')
     // Create content/posts directory
     await fs.ensureDir(path.join(targetDir, 'content/posts'));
 
+    // Create content/pages directory
+    await fs.ensureDir(path.join(targetDir, 'content/pages'));
+
+    // Create public directory
+    await fs.ensureDir(path.join(targetDir, 'public'));
+
     // Copy welcome post template with date substitution
     let welcomeContent = await fs.readFile(path.join(templatesDir, 'welcome.md'), 'utf8');
     welcomeContent = welcomeContent.replace('{{DATE}}', new Date().toISOString().split('T')[0]);
     await fs.writeFile(path.join(targetDir, 'content/posts/welcome.md'), welcomeContent);
+
+    // Copy static pages templates
+    await fs.copy(
+      path.join(templatesDir, 'pages/about.md'),
+      path.join(targetDir, 'content/pages/about.md')
+    );
+    await fs.copy(
+      path.join(templatesDir, 'pages/contact.md'),
+      path.join(targetDir, 'content/pages/contact.md')
+    );
+
+    // Copy 404.html to public directory
+    await fs.copy(
+      path.join(templatesDir, '404.html'),
+      path.join(targetDir, 'public/404.html')
+    );
 
     // Copy blog config
     await fs.copy(
@@ -50,11 +72,14 @@ program.command('init')
     console.log('✅ Blog content initialized!');
     console.log('\nCreated:');
     console.log('  - content/posts/welcome.md (sample post)');
+    console.log('  - content/pages/about.md (static page)');
+    console.log('  - content/pages/contact.md (static page)');
+    console.log('  - public/404.html (GitHub Pages redirect)');
     console.log('  - blog.config.js');
     console.log('  - .gitignore');
     console.log('  - .github/workflows/deploy.yml');
     console.log('\nNext steps:');
-    console.log('  1. Run: npx blog-engine process  (generate posts.js)');
+    console.log('  1. Run: npx blog-engine process  (generate posts.js and pages.js)');
     console.log('  2. Run: npx blog-engine dev      (start dev server)');
   });
 
@@ -83,10 +108,10 @@ program.command('preview')
   });
 
 program.command('process')
-  .description('Process markdown posts into JavaScript module')
+  .description('Process markdown posts and pages into JavaScript modules')
   .action(() => {
-    console.log('Processing posts...');
-    const processScript = path.join(__dirname, 'process-posts.js');
+    console.log('Processing content...');
+    const processScript = path.join(__dirname, 'process-content.js');
     const child = spawn('node', [processScript], { stdio: 'inherit' });
     child.on('exit', (code) => {
       process.exit(code);

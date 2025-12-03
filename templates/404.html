@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Redirecting...</title>
+  <script>
+    // GitHub Pages redirect script
+    // Saves the requested path and redirects to index.html
+    sessionStorage.setItem('redirect', location.pathname + location.search + location.hash);
+    location.replace(location.origin);
+  </script>
+</head>
+<body>
+  <p>Redirecting...</p>
+</body>
+</html>
