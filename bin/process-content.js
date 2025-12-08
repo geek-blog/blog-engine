@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
 import readingTime from 'reading-time';
-import { glob } from 'glob';
+import glob from 'glob';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -52,7 +52,7 @@ async function processPosts(PROJECT_ROOT) {
   }
 
   // Find all markdown files in content/posts
-  const postFiles = await glob(path.join(POSTS_DIR, '**/*.md'));
+  const postFiles = glob.sync(path.join(POSTS_DIR, '**/*.md'));
 
   if (postFiles.length === 0) {
     console.log('⚠️  No markdown files found in posts directory');
@@ -117,7 +117,7 @@ async function processPages(PROJECT_ROOT) {
   }
 
   // Find all markdown files in content/pages
-  const pageFiles = await glob(path.join(PAGES_DIR, '*.md'));
+  const pageFiles = glob.sync(path.join(PAGES_DIR, '*.md'));
 
   if (pageFiles.length === 0) {
     console.log('⚠️  No markdown files found in pages directory');

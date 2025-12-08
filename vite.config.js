@@ -23,6 +23,7 @@ const copy404Plugin = () => ({
 export default defineConfig({
   plugins: [react(), copy404Plugin()],
   root: path.resolve(__dirname),
+  publicDir: path.resolve(process.cwd(), 'public'),
   build: {
     outDir: path.resolve(process.cwd(), 'dist'),
     emptyOutDir: true,
