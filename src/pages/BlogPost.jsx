@@ -3,6 +3,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import { getPostBySlug } from '@content/posts';
+import MarkdownVideoLink from '../components/blog/MarkdownVideoLink';
+import MarkdownVideoParagraph from '../components/blog/MarkdownVideoParagraph';
 import Layout from '../components/layout/Layout';
 
 function BlogPost() {
@@ -52,6 +54,7 @@ function BlogPost() {
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeHighlight]}
+              components={{ a: MarkdownVideoLink, p: MarkdownVideoParagraph }}
             >
               {post.content}
             </ReactMarkdown>

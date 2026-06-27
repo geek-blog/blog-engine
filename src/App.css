@@ -557,6 +557,15 @@ body {
   margin: 32px 0;
 }
 
+.blog-post-video {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+  margin: 32px 0;
+  background-color: var(--color-background-alt);
+}
+
 .blog-post-content table {
   width: 100%;
   border-collapse: collapse;
