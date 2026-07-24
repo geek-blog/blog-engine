@@ -10,12 +10,12 @@ export const readState = projectRoot => {
 const corruptEngine = () => new Error('Hydrated engine package is corrupt.');
 
 const assertPackageUnchanged = (hydratedPackage, installedPackage) => {
-  if (hydratedPackage.digest !== installedPackage.ownedDigest) throw corruptEngine();
+  if (hydratedPackage.digest !== installedPackage.digest) throw corruptEngine();
 };
 
 const createEngineState = (lock, paths, hydratedPackage, installedPackage) => ({
   commit: lock.engine.commit,
-  installedPackageDigest: installedPackage.digest,
+  installedPackageDigest: installedPackage.installedDigest,
   packageDigest: hydratedPackage.digest,
   packageLockDigest: digestFile(paths.npmLock),
   signature: installedPackage.signature,
@@ -36,8 +36,8 @@ export const verifyEngineState = (projectRoot, lock) => {
   const state = readState(projectRoot).engine;
   const yalcPackage = verifyYalcPackage(projectRoot, lock.engine.package);
   if (!state || state.commit !== lock.engine.commit) throw new Error('Workspace engine state is stale.');
-  if (state.packageDigest !== yalcPackage.ownedDigest) throw corruptEngine();
-  if (state.installedPackageDigest !== yalcPackage.digest) throw corruptEngine();
+  if (state.packageDigest !== yalcPackage.digest) throw corruptEngine();
+  if (state.installedPackageDigest !== yalcPackage.installedDigest) throw corruptEngine();
   if (state.packageLockDigest !== digestFile(paths.npmLock)) throw new Error('Tracked npm lock changed after setup.');
   return yalcPackage;
 };

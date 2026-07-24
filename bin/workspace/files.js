@@ -20,10 +20,10 @@ const walk = (directory, excluded) => fs.readdirSync(directory, { withFileTypes:
   return entry.isDirectory() ? walk(target, excluded) : [target];
 });
 
-export const digestDirectory = (directory, excluded = []) => {
+export const digestDirectory = (directory, options = {}) => {
   const hash = crypto.createHash('sha256');
-  const targets = new Set(excluded.map(target => path.join(directory, target)));
-  walk(directory, targets).sort().forEach(file => {
+  const excluded = new Set((options.excludedPaths ?? []).map(target => path.join(directory, target)));
+  walk(directory, excluded).sort().forEach(file => {
     hash.update(path.relative(directory, file).replaceAll(path.sep, '/'));
     hash.update(fs.readFileSync(file));
   });

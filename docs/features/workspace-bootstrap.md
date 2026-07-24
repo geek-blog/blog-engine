@@ -24,7 +24,9 @@ content processing, builds, previews, diagnostics, updates, and optional enhance
 
 Yalc is always invoked as `yalc@1.0.0-pre.53` with `--sig` and a project-isolated store. `.yalc/` and `yalc.lock`
 are runtime state; `package-lock.json` is reviewed source. Signature agreement is checked across `yalc.lock`,
-`yalc.sig`, and the copied package manifest. A separate digest catches later copy corruption.
+`yalc.sig`, and the copied package manifest. A separate digest catches later copy corruption. Its boundary is the
+published package payload: the top-level `node_modules/` created inside `.yalc/<package>` during installation is
+excluded, while changes to published source, metadata, signatures, and other payload files remain detectable.
 
 ## How It Works
 
@@ -52,6 +54,8 @@ also distinguish allowed npm-managed nested dependencies from rejected changes t
 
 - A new engine commit changes the Yalc signature and therefore requires a reviewed npm-lock update.
 - `npm ci` must run only after `.yalc/blog-engine` exists.
+- Do not include install-time `node_modules/` trees in the hydrated package digest; npm can create them after the
+  setup state is recorded.
 - Do not repair a mismatched cache origin silently; report the cache path.
 - Do not add the enhancer to the content repository's root runtime dependencies.
 
