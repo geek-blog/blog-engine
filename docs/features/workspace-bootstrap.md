@@ -34,7 +34,9 @@ excluded, while changes to published source, metadata, signatures, and other pay
 dependency. A valid warm state is reused. Otherwise the exact source is published, the project copy is hydrated,
 the npm lock is checked, and `npm ci` runs. The package-owned digest must remain unchanged across installation,
 excluding only the Yalc copy's top-level npm-managed `node_modules`. Engine state also records the full post-install
-digest so later changes anywhere in that installed copy invalidate warm-state reuse.
+digest so later changes anywhere in that installed copy invalidate warm-state reuse. Doctor accepts a legacy state
+without that full digest when its remaining integrity, npm-lock, and installed-binary checks pass. Setup treats the
+same state as incomplete and performs one normal hydration to upgrade it; a present but mismatched digest is corrupt.
 
 `dev` runs setup, processing, and Vite. `build` uses the same sequence with strict production configuration.
 `update` accepts explicit engine or enhancer SHAs, rehydrates, regenerates the npm lock, and leaves the JSON lock
@@ -48,7 +50,8 @@ and npm lock as reviewable changes. Its forced setup owns the final engine-state
 Unit tests cover lock validation, argument parsing, config precedence, aliases, safe defaults, and strict failures.
 Contract tests use Node 20 to cover clean and warm setup, corrupt Yalc state, stale npm locks, wrong SHAs, cache
 remote mismatch, inaccessible enhancer access, and blogs pinned to different commits. Setup and update fixtures
-also distinguish allowed npm-managed nested dependencies from rejected changes to package-owned files.
+also distinguish allowed npm-managed nested dependencies from rejected changes to package-owned files, and cover
+the one-time legacy-state upgrade.
 
 ## Important Patterns And Pitfalls
 

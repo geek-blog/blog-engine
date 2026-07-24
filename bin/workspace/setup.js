@@ -3,14 +3,14 @@ import { resolveEngineSource } from './git.js';
 import { projectPaths } from './files.js';
 import { installClean, installedEngineBin, verifyNpmLock } from './npm.js';
 import { validatePrerequisites, validateProject } from './prerequisites.js';
-import { verifyEngineState, writeEngineState } from './state.js';
+import { isEngineStateComplete, verifyEngineState, writeEngineState } from './state.js';
 import { hydratePackage, validateDependency } from './yalc.js';
 
 const ready = (projectRoot, lock) => {
   try {
     const yalcPackage = verifyEngineState(projectRoot, lock);
     verifyNpmLock(projectRoot, lock.engine.package, yalcPackage);
-    return fs.existsSync(installedEngineBin(projectRoot));
+    return isEngineStateComplete(projectRoot) && fs.existsSync(installedEngineBin(projectRoot));
   } catch {
     return false;
   }
