@@ -46,5 +46,10 @@ export const verifyYalcPackage = (projectRoot, packageName) => {
   if (!manifest.version.endsWith(`+${signature.slice(0, 8)}`)) {
     throw new Error(`Yalc version signature mismatch for ${packageName}.`);
   }
-  return { digest: digestDirectory(target), signature, version: manifest.version };
+  return {
+    digest: digestDirectory(target),
+    ownedDigest: digestDirectory(target, ['node_modules']),
+    signature,
+    version: manifest.version,
+  };
 };

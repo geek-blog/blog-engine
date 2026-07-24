@@ -1,7 +1,6 @@
 import { ensureCheckout } from './git.js';
 import { regenerateNpmLock, verifyNpmLock } from './npm.js';
 import { validatePrerequisites, validateProject } from './prerequisites.js';
-import { writeEngineState } from './state.js';
 import { hydratePackage, validateDependency } from './yalc.js';
 import { prepareWorkspace } from './setup.js';
 import { setupEnhancer } from './enhancer.js';
@@ -29,7 +28,6 @@ export const updateWorkspace = (projectRoot, lock, engineRoot, changes) => {
   regenerateNpmLock(projectRoot);
   verifyNpmLock(projectRoot, lock.engine.package, yalcPackage);
   prepareWorkspace(projectRoot, lock, engineRoot, { force: true });
-  writeEngineState(projectRoot, lock, yalcPackage);
   if (changes.enhancer) setupEnhancer(projectRoot, lock);
   console.log('Updated explicit pins and tracked npm lock. Review the repository diff.');
 };

@@ -7,18 +7,28 @@ export const readState = projectRoot => {
   return fs.existsSync(file) ? readJson(file) : {};
 };
 
-export const writeEngineState = (projectRoot, lock, yalcPackage) => {
+const corruptEngine = () => new Error('Hydrated engine package is corrupt.');
+
+const assertPackageUnchanged = (hydratedPackage, installedPackage) => {
+  if (hydratedPackage.digest !== installedPackage.ownedDigest) throw corruptEngine();
+};
+
+const createEngineState = (lock, paths, hydratedPackage, installedPackage) => ({
+  commit: lock.engine.commit,
+  installedPackageDigest: installedPackage.digest,
+  packageDigest: hydratedPackage.digest,
+  packageLockDigest: digestFile(paths.npmLock),
+  signature: installedPackage.signature,
+});
+
+export const writeEngineState = (projectRoot, lock, hydratedPackage) => {
   const paths = projectPaths(projectRoot);
-  const state = {
+  const installedPackage = verifyYalcPackage(projectRoot, lock.engine.package);
+  assertPackageUnchanged(hydratedPackage, installedPackage);
+  writeJson(paths.state, {
     ...readState(projectRoot),
-    engine: {
-      commit: lock.engine.commit,
-      packageDigest: yalcPackage.digest,
-      packageLockDigest: digestFile(paths.npmLock),
-      signature: yalcPackage.signature,
-    },
-  };
-  writeJson(paths.state, state);
+    engine: createEngineState(lock, paths, hydratedPackage, installedPackage),
+  });
 };
 
 export const verifyEngineState = (projectRoot, lock) => {
@@ -26,7 +36,8 @@ export const verifyEngineState = (projectRoot, lock) => {
   const state = readState(projectRoot).engine;
   const yalcPackage = verifyYalcPackage(projectRoot, lock.engine.package);
   if (!state || state.commit !== lock.engine.commit) throw new Error('Workspace engine state is stale.');
-  if (state.packageDigest !== yalcPackage.digest) throw new Error('Hydrated engine package is corrupt.');
+  if (state.packageDigest !== yalcPackage.ownedDigest) throw corruptEngine();
+  if (state.installedPackageDigest !== yalcPackage.digest) throw corruptEngine();
   if (state.packageLockDigest !== digestFile(paths.npmLock)) throw new Error('Tracked npm lock changed after setup.');
   return yalcPackage;
 };
