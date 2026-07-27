@@ -26,7 +26,7 @@ test('nested configuration and styles cannot bypass the pinned font', {
         title: 'Hostile font',
       });
     } catch (error) {
-      assert.match(error.message, /Unsafe Mermaid SVG output/);
+      assert.match(error.message, /Unsafe Mermaid SVG output|Unsupported Mermaid font shorthand/);
       continue;
     }
     const staging = await session.prepareForCommit();

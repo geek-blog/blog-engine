@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { normalizeMermaidFontFamily } from '../bin/mermaid/svgFontSafety.js';
+import {
+  normalizeMermaidFontFamily,
+  UnsupportedMermaidFontShorthandError,
+} from '../bin/mermaid/svgFontSafety.js';
 
 test('accepts only the pinned family in CSS and SVG attributes', () => {
   const safe = '<svg font-family="Noto Sans"><style>text{font-family:\'Noto Sans\'}</style></svg>';
@@ -26,4 +29,18 @@ test('removes generic fallbacks and handles XML-encoded family quotes', () => {
   const expected = '<svg><style>text{font-family:\'Noto Sans\'}</style></svg>';
 
   assert.equal(normalizeMermaidFontFamily(source, 'Noto Sans'), expected);
+});
+
+test('rejects font shorthand before it can override measurement policy', () => {
+  const inline = '<svg><text style="font:16px HostileFont !important">Unsafe</text></svg>';
+  const stylesheet = '<svg><style>.hostile{font:16px HostileFont}</style></svg>';
+
+  assert.throws(
+    () => normalizeMermaidFontFamily(inline, 'Noto Sans'),
+    UnsupportedMermaidFontShorthandError,
+  );
+  assert.throws(
+    () => normalizeMermaidFontFamily(stylesheet, 'Noto Sans'),
+    UnsupportedMermaidFontShorthandError,
+  );
 });
