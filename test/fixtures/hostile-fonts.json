@@ -1,0 +1,9 @@
+[
+  "```mermaid\n---\nconfig:\n  sequence:\n    actorFontFamily: HostileFont\n---\nsequenceDiagram\n    Alice->>Bob: Hello\n```",
+  "```mermaid\n---\nconfig:\n  gantt:\n    taskFontFamily: HostileFont\n---\ngantt\n    dateFormat YYYY-MM-DD\n    Task :2026-07-27, 1d\n```",
+  "```mermaid\n---\nconfig:\n  c4:\n    personFontFamily: HostileFont\n---\nC4Context\n    Person(user, \"User\")\n```",
+  "```mermaid\nflowchart LR\n    A --> B\n    classDef hostile font-family:HostileFont\n    class A hostile\n```",
+  "```mermaid\nflowchart LR\n    A --> B\n    classDef hostile font:16px HostileFont !important\n    class A hostile\n```",
+  "```mermaid\nflowchart LR\n    A --> B\n    classDef hostile font/**/:16px HostileFont !important\n    class A hostile\n```",
+  "```mermaid\nflowchart LR\n    A --> B\n    classDef hostile f\\6f nt:16px HostileFont !important\n    class A hostile\n```"
+]

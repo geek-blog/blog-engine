@@ -8,6 +8,7 @@ import {
   MERMAID_CLI_VERSION,
   SVG_OUTPUT_POLICY,
 } from '../bin/mermaid/renderPolicy.js';
+import { MERMAID_FONT_IDENTITY } from '../bin/mermaid/MermaidFont.js';
 
 test('pins the renderer and strict deterministic policy', () => {
   const spec = createRenderSpec('flowchart LR\nA --> B');
@@ -17,7 +18,12 @@ test('pins the renderer and strict deterministic policy', () => {
   assert.equal(FIXED_MERMAID_CONFIG.securityLevel, 'strict');
   assert.equal(FIXED_MERMAID_CONFIG.htmlLabels, false);
   assert.equal(FIXED_MERMAID_CONFIG.theme, 'default');
+  assert.equal(FIXED_MERMAID_CONFIG.fontFamily, 'Noto Sans');
+  assert.equal(MERMAID_FONT_IDENTITY.package, '@fontsource/noto-sans');
+  assert.equal(MERMAID_FONT_IDENTITY.version, '5.3.0');
+  assert.match(MERMAID_FONT_IDENTITY.sha256, /^[a-f0-9]{64}$/);
   assert.equal(FIXED_MERMAID_CONFIG.deterministicIds, true);
+  assert.ok(FIXED_MERMAID_CONFIG.secure.includes('fontFamily'));
   assert.ok(FIXED_MERMAID_CONFIG.secure.includes('themeCSS'));
   assert.match(spec.assetHash, /^[a-f0-9]{64}$/);
   assert.match(spec.mermaidConfig.deterministicIDSeed, /^[a-f0-9]{64}$/);
@@ -44,4 +50,15 @@ test('includes the explicit SVG output policy in the asset hash', () => {
   assert.equal(SVG_OUTPUT_POLICY, 'intrinsic-viewbox-v1');
   assert.equal(defaultSpec.assetHash, explicit.assetHash);
   assert.notEqual(defaultSpec.assetHash, alternate.assetHash);
+});
+
+test('includes the exact font identity in the asset hash', () => {
+  const definition = 'flowchart LR\nA --> B';
+  const current = createRenderSpec(definition);
+  const changed = createRenderSpec(definition, SVG_OUTPUT_POLICY, {
+    ...MERMAID_FONT_IDENTITY,
+    sha256: '0'.repeat(64),
+  });
+
+  assert.notEqual(current.assetHash, changed.assetHash);
 });

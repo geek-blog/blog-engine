@@ -34,10 +34,10 @@ const saveState = fixture => {
   writeEngineState(fixture.projectRoot, fixture.lock, yalcPackage);
 };
 
-test('ignores nested node_modules installed into the hydrated package', t => {
+test('tracks nested node_modules installed into the hydrated package', t => {
   const fixture = createFixture(t);
-  saveState(fixture);
   writeFile(fixture.target, 'node_modules/transitive/index.js', 'installed dependency\n');
+  saveState(fixture);
   assert.doesNotThrow(() => verifyEngineState(fixture.projectRoot, fixture.lock));
 });
 

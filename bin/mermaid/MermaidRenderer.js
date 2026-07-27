@@ -1,9 +1,19 @@
 import { renderMermaid } from '@mermaid-js/mermaid-cli';
 import puppeteer from 'puppeteer';
 import { ConcurrencyQueue } from './ConcurrencyQueue.js';
+import {
+  createMermaidFontSvgCss,
+  installMermaidFont,
+  MERMAID_FONT_DATA_URLS,
+  MERMAID_FONT_FAMILY,
+} from './MermaidFont.js';
 import { installMermaidRequestPolicy } from './MermaidRequestPolicy.js';
 import { MERMAID_BACKGROUND } from './renderPolicy.js';
 import { normalizeMermaidSvgDimensions } from './svgDimensions.js';
+import {
+  assertDeterministicMermaidDefinition,
+  normalizeMermaidFontFamily,
+} from './svgFontSafety.js';
 import { assertSafeMermaidSvg, sanitizeMermaidSvg } from './svgSafety.js';
 
 const launchBrowser = () => puppeteer.launch();
@@ -32,17 +42,21 @@ export class MermaidRenderer {
   }
 
   async #render(definition, spec) {
+    assertDeterministicMermaidDefinition(definition);
     this.browserPromise ??= Promise.resolve(this.browserLauncher())
-      .then(installMermaidRequestPolicy);
+      .then(installMermaidRequestPolicy)
+      .then(installMermaidFont);
     const browser = await this.browserPromise;
     const result = await this.renderer(browser, definition, 'svg', {
       backgroundColor: MERMAID_BACKGROUND,
       mermaidConfig: spec.mermaidConfig,
+      myCSS: createMermaidFontSvgCss(spec.svgId),
       svgId: spec.svgId,
     });
     const sanitized = sanitizeMermaidSvg(toSvg(result.data));
-    const svg = normalizeMermaidSvgDimensions(sanitized);
-    assertSafeMermaidSvg(svg);
+    const fontNormalized = normalizeMermaidFontFamily(sanitized, MERMAID_FONT_FAMILY);
+    const svg = normalizeMermaidSvgDimensions(fontNormalized);
+    assertSafeMermaidSvg(svg, { allowedCssResources: MERMAID_FONT_DATA_URLS });
     return { svg, desc: result.desc, title: result.title };
   }
 }

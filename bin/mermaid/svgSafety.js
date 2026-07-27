@@ -21,10 +21,15 @@ const decodeCssEscapes = value => value
     hex ? String.fromCodePoint(Number.parseInt(hex, 16)) : character
   ));
 
-const findUnsafeReference = (content, pattern, normalize = value => value) => {
+const findUnsafeReference = (
+  content,
+  pattern,
+  normalize = value => value,
+  allowed = new Set(),
+) => {
   for (const match of content.matchAll(pattern)) {
     const reference = normalize(match[2].trim());
-    if (reference && !reference.startsWith('#')) return reference;
+    if (reference && !reference.startsWith('#') && !allowed.has(reference)) return reference;
   }
   return null;
 };
@@ -55,7 +60,7 @@ export const sanitizeMermaidSvg = svg => svg
   .replace(/<\/a>/gi, '')
   .replace(/(\s)class=(['"])(.*?)\2/gi, sanitizeClass);
 
-export const assertSafeMermaidSvg = svg => {
+export const assertSafeMermaidSvg = (svg, { allowedCssResources = [] } = {}) => {
   const tags = svg.match(/<[^>]+>/g)?.join('') ?? '';
   if (ACTIVE_ELEMENT.test(svg)) throw new UnsafeMermaidSvgError('active element');
   if (EVENT_ATTRIBUTE.test(tags)) throw new UnsafeMermaidSvgError('event attribute');
@@ -63,7 +68,11 @@ export const assertSafeMermaidSvg = svg => {
   if (resource) throw new UnsafeMermaidSvgError(`external resource ${resource}`);
   const css = cssContent(svg);
   if (/@import\b/i.test(css)) throw new UnsafeMermaidSvgError('CSS import');
-  if (FORBIDDEN_CSS_REFERENCE.test(css)) throw new UnsafeMermaidSvgError('external CSS reference');
-  const cssResource = findUnsafeReference(css, CSS_RESOURCE);
+  const allowed = new Set(allowedCssResources);
+  const untrustedCss = [...allowed].reduce((content, value) => content.replaceAll(value, ''), css);
+  if (FORBIDDEN_CSS_REFERENCE.test(untrustedCss)) {
+    throw new UnsafeMermaidSvgError('external CSS reference');
+  }
+  const cssResource = findUnsafeReference(css, CSS_RESOURCE, value => value, allowed);
   if (cssResource) throw new UnsafeMermaidSvgError(`external CSS resource ${cssResource}`);
 };

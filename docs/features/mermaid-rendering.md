@@ -36,10 +36,13 @@ of Mermaid CLI `11.16.0`, the canonical render policy, and the diagram definitio
 Mermaid's deterministic IDs. Identical definitions share one render and one asset.
 
 The render policy uses Mermaid's default theme, strict security, text-only SVG labels, a transparent background,
-and secure deterministic settings. The session calls the public `renderMermaid` API from the exact-pinned Mermaid
-CLI. It starts one Puppeteer browser only after finding a diagram and permits at most two concurrent renderer pages.
-Each page permits only the CLI's exact bootstrap file, passive browser URLs, and the CLI's internal interception
-origin. Other file, HTTP, HTTPS, FTP, and malformed requests are aborted before diagram rendering.
+and exact-pinned Noto Sans font files. The package version and inlined font CSS digest participate in the asset
+hash. Each renderer page loads the engine-owned font before Mermaid measures labels, and the generated SVG embeds
+the same font as data-only WOFF2 resources for consistent display without browser network requests. The session
+calls the public `renderMermaid` API from the exact-pinned Mermaid CLI. It starts one Puppeteer browser only after
+finding a diagram and permits at most two concurrent renderer pages. Each page permits only the CLI's exact
+bootstrap file, passive browser URLs, and the CLI's internal interception origin. Other file, HTTP, HTTPS, FTP, and
+malformed requests are aborted before diagram rendering.
 
 Image alternative text prefers `accDescr`, then `accTitle`, then `<article title> — diagram N`. Invalid diagrams
 report the repository-relative Markdown path, diagram ordinal, opening-fence line, and Mermaid's parse detail.
@@ -62,6 +65,13 @@ removes obsolete SVGs without launching Chromium. A failed render removes only s
 ## Important Patterns And Pitfalls
 
 - Keep the Mermaid CLI and Puppeteer pins exact; renderer output is part of the asset identity.
+- Keep `@fontsource/noto-sans` exact and include its inlined CSS digest in the render policy. Falling back to a host
+  font makes renderer geometry environment-dependent and can produce different bytes under the same asset URL.
+- Force Noto Sans with container and per-SVG ID selectors, then normalize emitted font declarations. This covers
+  nested diagram configuration and `classDef` styles that would otherwise bypass the deterministic font policy.
+- Reject font-family, `font` shorthand, and `all` reset directives in definitions before Chromium starts; cleanup
+  after rendering cannot undo host-dependent label measurement.
+- Reject CSS `font` shorthand declarations because an inline important shorthand can override the measurement rule.
 - Bump `SVG_OUTPUT_POLICY` whenever SVG sanitization, normalization, or other byte-level post-processing changes so
   browsers and CDNs never reuse an asset URL for different SVG bytes.
 - Do not pass `--no-sandbox`. The runtime must provide Chromium libraries and run as a non-root user.
@@ -77,7 +87,7 @@ removes obsolete SVGs without launching Chromium. A failed render removes only s
 - Generated SVG may contain anchor wrappers for Mermaid click directives even in strict mode. The safety layer
   removes those wrappers and clickable classes, then rejects scripts, event attributes, unsafe resource URLs,
   foreign objects, CSS imports, and external CSS resources. CSS checks decode escapes and numeric entities before
-  inspection; only fragment-local `url(#id)` references are accepted.
+  inspection; only fragment-local `url(#id)` references and the engine's exact inlined font resources are accepted.
 
 ## Integration Points
 
@@ -115,4 +125,4 @@ The package-level test environment may use a newer Node release, but release val
 Node 20 install and render because Node 20 is the supported runtime contract.
 
 ---
-Last updated: 2026-07-24
+Last updated: 2026-07-27

@@ -25,18 +25,22 @@ content processing, builds, previews, diagnostics, updates, and optional enhance
 Yalc is always invoked as `yalc@1.0.0-pre.53` with `--sig` and a project-isolated store. `.yalc/` and `yalc.lock`
 are runtime state; `package-lock.json` is reviewed source. Signature agreement is checked across `yalc.lock`,
 `yalc.sig`, and the copied package manifest. A separate digest catches later copy corruption. Its boundary is the
-published package payload: `node_modules/` directories created inside `.yalc/<package>` during installation are
+published package payload: the top-level `node_modules/` created inside `.yalc/<package>` during installation is
 excluded, while changes to published source, metadata, signatures, and other payload files remain detectable.
 
 ## How It Works
 
 `setup` validates Node 20, Linux/macOS/WSL2, Git, npm, ignore rules, the lock, and the `file:.yalc/blog-engine`
 dependency. A valid warm state is reused. Otherwise the exact source is published, the project copy is hydrated,
-the npm lock is checked, and `npm ci` runs.
+the npm lock is checked, and `npm ci` runs. The package-owned digest must remain unchanged across installation,
+excluding only the Yalc copy's top-level npm-managed `node_modules`. Engine state also records the full post-install
+digest so later changes anywhere in that installed copy invalidate warm-state reuse. Doctor accepts a legacy state
+without that full digest when its remaining integrity, npm-lock, and installed-binary checks pass. Setup treats the
+same state as incomplete and performs one normal hydration to upgrade it; a present but mismatched digest is corrupt.
 
 `dev` runs setup, processing, and Vite. `build` uses the same sequence with strict production configuration.
 `update` accepts explicit engine or enhancer SHAs, rehydrates, regenerates the npm lock, and leaves the JSON lock
-and npm lock as reviewable changes.
+and npm lock as reviewable changes. Its forced setup owns the final engine-state write.
 
 `enhance` maps `GEEK_BLOG_TOKEN` to `GH_TOKEN` only for GitHub subprocesses in CI. Local users authenticate with
 `gh auth`. Access is verified before cloning the exact private SHA. Credentials are never written to disk.
@@ -45,7 +49,9 @@ and npm lock as reviewable changes.
 
 Unit tests cover lock validation, argument parsing, config precedence, aliases, safe defaults, and strict failures.
 Contract tests use Node 20 to cover clean and warm setup, corrupt Yalc state, stale npm locks, wrong SHAs, cache
-remote mismatch, inaccessible enhancer access, and blogs pinned to different commits.
+remote mismatch, inaccessible enhancer access, and blogs pinned to different commits. Setup and update fixtures
+also distinguish allowed npm-managed nested dependencies from rejected changes to package-owned files, and cover
+the one-time legacy-state upgrade.
 
 ## Important Patterns And Pitfalls
 
