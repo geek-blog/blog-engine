@@ -9,6 +9,11 @@ export const readState = projectRoot => {
 
 const corruptEngine = () => new Error('Hydrated engine package is corrupt.');
 
+const matchesLegacyDigest = (state, yalcPackage) => (
+  !Object.hasOwn(state, 'installedPackageDigest')
+  && state.packageDigest === yalcPackage.installedDigest
+);
+
 export const isEngineStateComplete = projectRoot => {
   const state = readState(projectRoot).engine;
   return Boolean(state && Object.hasOwn(state, 'installedPackageDigest'));
@@ -41,7 +46,9 @@ export const verifyEngineState = (projectRoot, lock) => {
   const state = readState(projectRoot).engine;
   const yalcPackage = verifyYalcPackage(projectRoot, lock.engine.package);
   if (!state || state.commit !== lock.engine.commit) throw new Error('Workspace engine state is stale.');
-  if (state.packageDigest !== yalcPackage.digest) throw corruptEngine();
+  if (state.packageDigest !== yalcPackage.digest && !matchesLegacyDigest(state, yalcPackage)) {
+    throw corruptEngine();
+  }
   if (Object.hasOwn(state, 'installedPackageDigest')) {
     if (state.installedPackageDigest !== yalcPackage.installedDigest) throw corruptEngine();
   }
