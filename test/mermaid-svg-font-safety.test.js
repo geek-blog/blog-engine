@@ -34,6 +34,12 @@ test('removes generic fallbacks and handles XML-encoded family quotes', () => {
 test('rejects font shorthand before it can override measurement policy', () => {
   const inline = '<svg><text style="font:16px HostileFont !important">Unsafe</text></svg>';
   const stylesheet = '<svg><style>.hostile{font:16px HostileFont}</style></svg>';
+  const comment = '<svg><style>.hostile{font/**/:16px HostileFont!important}</style></svg>';
+  const escape = '<svg><style>.hostile{f\\6f nt:16px HostileFont!important}</style></svg>';
+  const mixed = [
+    '<svg><style>.safe{fill:red}</style>',
+    '<rect style="font/**/:16px HostileFont!important"/></svg>',
+  ].join('');
 
   assert.throws(
     () => normalizeMermaidFontFamily(inline, 'Noto Sans'),
@@ -41,6 +47,18 @@ test('rejects font shorthand before it can override measurement policy', () => {
   );
   assert.throws(
     () => normalizeMermaidFontFamily(stylesheet, 'Noto Sans'),
+    UnsupportedMermaidFontShorthandError,
+  );
+  assert.throws(
+    () => normalizeMermaidFontFamily(comment, 'Noto Sans'),
+    UnsupportedMermaidFontShorthandError,
+  );
+  assert.throws(
+    () => normalizeMermaidFontFamily(escape, 'Noto Sans'),
+    UnsupportedMermaidFontShorthandError,
+  );
+  assert.throws(
+    () => normalizeMermaidFontFamily(mixed, 'Noto Sans'),
     UnsupportedMermaidFontShorthandError,
   );
 });

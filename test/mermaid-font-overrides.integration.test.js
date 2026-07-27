@@ -31,7 +31,11 @@ test('nested configuration and styles cannot bypass the pinned font', {
     }
     const staging = await session.prepareForCommit();
     for (const filename of fs.readdirSync(staging)) {
-      assert.doesNotMatch(fs.readFileSync(path.join(staging, filename), 'utf8'), /HostileFont/);
+      assert.doesNotMatch(
+        fs.readFileSync(path.join(staging, filename), 'utf8'),
+        /HostileFont/,
+        `hostile fixture ${index + 1}: ${filename}`,
+      );
     }
   }
 });
