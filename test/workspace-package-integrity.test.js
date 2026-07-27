@@ -6,6 +6,7 @@ import { projectPaths, writeJson } from '../bin/workspace/files.js';
 import { prepareWorkspace } from '../bin/workspace/setup.js';
 import { readState, verifyEngineState } from '../bin/workspace/state.js';
 import { updateWorkspace } from '../bin/workspace/update.js';
+import { verifyYalcPackage } from '../bin/workspace/yalc.js';
 import { withWorkspaceIntegrityFixture } from '../test-support/workspaceIntegrityFixture.js';
 
 const changeEngineState = (project, change) => {
@@ -48,6 +49,33 @@ test('legacy state passes verification and doctor before setup upgrades it', () 
     prepareWorkspace(project, lock, source);
     assert.equal(fs.readFileSync(installed, 'utf8'), 'installed');
     assert.equal(typeof readState(project).engine.installedPackageDigest, 'string');
+  })
+));
+
+test('legacy full-package digest passes doctor before setup upgrades it', () => (
+  withWorkspaceIntegrityFixture(({ project, lock, source }) => {
+    prepareWorkspace(project, lock, source);
+    const installedDigest = verifyYalcPackage(project, lock.engine.package).installedDigest;
+    changeEngineState(project, state => {
+      delete state.installedPackageDigest;
+      state.packageDigest = installedDigest;
+    });
+    assert.doesNotThrow(() => runDoctor(project, lock, source));
+    prepareWorkspace(project, lock, source);
+    assert.equal(typeof readState(project).engine.installedPackageDigest, 'string');
+  })
+));
+
+test('legacy full-package digest rejects later installed changes', () => (
+  withWorkspaceIntegrityFixture(({ installed, project, lock, source }) => {
+    prepareWorkspace(project, lock, source);
+    const installedDigest = verifyYalcPackage(project, lock.engine.package).installedDigest;
+    changeEngineState(project, state => {
+      delete state.installedPackageDigest;
+      state.packageDigest = installedDigest;
+    });
+    fs.writeFileSync(installed, 'changed');
+    assert.throws(() => runDoctor(project, lock, source), /Hydrated engine package is corrupt/);
   })
 ));
 
