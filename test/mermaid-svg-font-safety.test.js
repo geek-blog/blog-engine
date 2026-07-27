@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  assertDeterministicMermaidDefinition,
   normalizeMermaidFontFamily,
+  UnsupportedMermaidFontDefinitionError,
   UnsupportedMermaidFontShorthandError,
 } from '../bin/mermaid/svgFontSafety.js';
 
@@ -66,4 +68,22 @@ test('rejects font shorthand before it can override measurement policy', () => {
     () => normalizeMermaidFontFamily(multiline, 'Noto Sans'),
     UnsupportedMermaidFontShorthandError,
   );
+});
+
+test('rejects source font overrides before rendering', () => {
+  const overrides = [
+    '%%{init: {"f\\u006fntFamily": "HostileFont"}}%%',
+    'classDef hostile font/**/-family:HostileFont',
+    'classDef hostile f\\6f nt:16px HostileFont',
+    'classDef hostile all:initial',
+    'sequence:\n  actorFontFamily: HostileFont',
+  ];
+
+  assert.doesNotThrow(() => assertDeterministicMermaidDefinition('flowchart LR\nA --> B'));
+  for (const definition of overrides) {
+    assert.throws(
+      () => assertDeterministicMermaidDefinition(definition),
+      UnsupportedMermaidFontDefinitionError,
+    );
+  }
 });

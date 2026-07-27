@@ -15,11 +15,19 @@ const decodeCssEscapes = value => value
     hex ? String.fromCodePoint(Number.parseInt(hex, 16)) : character
   ));
 
+const decodeUnicodeEscapes = value => value.replace(
+  /\\u([0-9a-f]{4})/gi,
+  (_escape, hex) => String.fromCodePoint(Number.parseInt(hex, 16)),
+);
+
+const normalizeCssText = value => decodeCssEscapes(
+  decodeUnicodeEscapes(decodeNumericEntities(value)),
+).replace(/\/\*[\s\S]*?\*\//g, '');
+
 const normalizedCss = svg => {
   const styles = [...svg.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)].map(match => match[1]);
   const attributes = [...svg.matchAll(/\sstyle\s*=\s*(['"])([\s\S]*?)\1/gi)].map(match => match[2]);
-  return decodeCssEscapes(decodeNumericEntities([...styles, ...attributes].join('\n')))
-    .replace(/\/\*[\s\S]*?\*\//g, '');
+  return normalizeCssText([...styles, ...attributes].join('\n'));
 };
 
 const normalizeCss = (declaration, value, family) => (
@@ -32,6 +40,21 @@ export class UnsupportedMermaidFontShorthandError extends Error {
     this.name = 'UnsupportedMermaidFontShorthandError';
   }
 }
+
+export class UnsupportedMermaidFontDefinitionError extends Error {
+  constructor(property) {
+    super(`Unsupported Mermaid font override: ${property}`);
+    this.name = 'UnsupportedMermaidFontDefinitionError';
+  }
+}
+
+const FONT_OVERRIDE = /(?:\b[\w-]*fontfamily|\bfont-family|\bfont|\ball)\s*:/i;
+
+export const assertDeterministicMermaidDefinition = definition => {
+  const normalized = normalizeCssText(definition).replace(/["']/g, '');
+  const property = normalized.match(FONT_OVERRIDE)?.[0];
+  if (property) throw new UnsupportedMermaidFontDefinitionError(property.slice(0, -1));
+};
 
 export const normalizeMermaidFontFamily = (svg, allowedFamily) => {
   if (CSS_FONT_SHORTHAND.test(normalizedCss(svg))) {

@@ -7,6 +7,7 @@ import {
   MERMAID_FONT_FAMILY,
   MERMAID_FONT_PAGE_CSS,
 } from '../bin/mermaid/MermaidFont.js';
+import { MermaidRenderer } from '../bin/mermaid/MermaidRenderer.js';
 
 const createBrowser = loaded => {
   const events = [];
@@ -51,4 +52,20 @@ test('fails rendering when the deterministic font cannot load', async () => {
     page.goto('file:///renderer.html'),
     /Unable to load deterministic Mermaid font: Noto Sans/,
   );
+});
+
+test('rejects source font overrides before launching a browser', async () => {
+  let launches = 0;
+  const renderer = new MermaidRenderer({
+    browserLauncher: () => {
+      launches += 1;
+      return {};
+    },
+  });
+
+  await assert.rejects(
+    renderer.render('flowchart LR\nclassDef x font:16px HostileFont', {}),
+    /Unsupported Mermaid font override: font/,
+  );
+  assert.equal(launches, 0);
 });

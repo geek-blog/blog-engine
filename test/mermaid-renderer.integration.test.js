@@ -27,7 +27,6 @@ const assertPassiveSvg = svg => {
 };
 const unsafeInit = {
   securityLevel: 'loose',
-  fontFamily: 'HostileFont',
   themeCSS: '@import url(https://evil.example/x.css)',
   flowchart: { htmlLabels: true },
 };
@@ -35,7 +34,6 @@ const unsafeDefinition = [
   '```mermaid',
   '---',
   'config:',
-  '  fontFamily: HostileFont',
   '  securityLevel: loose',
   '---',
   `%%{init: ${JSON.stringify(unsafeInit)}}%%`,

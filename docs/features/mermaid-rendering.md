@@ -69,6 +69,8 @@ removes obsolete SVGs without launching Chromium. A failed render removes only s
   font makes renderer geometry environment-dependent and can produce different bytes under the same asset URL.
 - Force Noto Sans with container and per-SVG ID selectors, then normalize emitted font declarations. This covers
   nested diagram configuration and `classDef` styles that would otherwise bypass the deterministic font policy.
+- Reject font-family, `font` shorthand, and `all` reset directives in definitions before Chromium starts; cleanup
+  after rendering cannot undo host-dependent label measurement.
 - Reject CSS `font` shorthand declarations because an inline important shorthand can override the measurement rule.
 - Bump `SVG_OUTPUT_POLICY` whenever SVG sanitization, normalization, or other byte-level post-processing changes so
   browsers and CDNs never reuse an asset URL for different SVG bytes.

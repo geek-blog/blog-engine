@@ -10,7 +10,10 @@ import {
 import { installMermaidRequestPolicy } from './MermaidRequestPolicy.js';
 import { MERMAID_BACKGROUND } from './renderPolicy.js';
 import { normalizeMermaidSvgDimensions } from './svgDimensions.js';
-import { normalizeMermaidFontFamily } from './svgFontSafety.js';
+import {
+  assertDeterministicMermaidDefinition,
+  normalizeMermaidFontFamily,
+} from './svgFontSafety.js';
 import { assertSafeMermaidSvg, sanitizeMermaidSvg } from './svgSafety.js';
 
 const launchBrowser = () => puppeteer.launch();
@@ -39,6 +42,7 @@ export class MermaidRenderer {
   }
 
   async #render(definition, spec) {
+    assertDeterministicMermaidDefinition(definition);
     this.browserPromise ??= Promise.resolve(this.browserLauncher())
       .then(installMermaidRequestPolicy)
       .then(installMermaidFont);
