@@ -17,7 +17,7 @@ const decodeCssEscapes = value => value
 
 const normalizedCss = svg => {
   const styles = [...svg.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)].map(match => match[1]);
-  const attributes = [...svg.matchAll(/\sstyle\s*=\s*(['"])(.*?)\1/gi)].map(match => match[2]);
+  const attributes = [...svg.matchAll(/\sstyle\s*=\s*(['"])([\s\S]*?)\1/gi)].map(match => match[2]);
   return decodeCssEscapes(decodeNumericEntities([...styles, ...attributes].join('\n')))
     .replace(/\/\*[\s\S]*?\*\//g, '');
 };

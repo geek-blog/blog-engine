@@ -40,6 +40,7 @@ test('rejects font shorthand before it can override measurement policy', () => {
     '<svg><style>.safe{fill:red}</style>',
     '<rect style="font/**/:16px HostileFont!important"/></svg>',
   ].join('');
+  const multiline = '<svg><rect style="fill:red;\nfont:16px HostileFont!important"/></svg>';
 
   assert.throws(
     () => normalizeMermaidFontFamily(inline, 'Noto Sans'),
@@ -59,6 +60,10 @@ test('rejects font shorthand before it can override measurement policy', () => {
   );
   assert.throws(
     () => normalizeMermaidFontFamily(mixed, 'Noto Sans'),
+    UnsupportedMermaidFontShorthandError,
+  );
+  assert.throws(
+    () => normalizeMermaidFontFamily(multiline, 'Noto Sans'),
     UnsupportedMermaidFontShorthandError,
   );
 });
