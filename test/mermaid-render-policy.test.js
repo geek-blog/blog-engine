@@ -17,7 +17,9 @@ test('pins the renderer and strict deterministic policy', () => {
   assert.equal(FIXED_MERMAID_CONFIG.securityLevel, 'strict');
   assert.equal(FIXED_MERMAID_CONFIG.htmlLabels, false);
   assert.equal(FIXED_MERMAID_CONFIG.theme, 'default');
+  assert.equal(FIXED_MERMAID_CONFIG.fontFamily, 'KaTeX_Main');
   assert.equal(FIXED_MERMAID_CONFIG.deterministicIds, true);
+  assert.ok(FIXED_MERMAID_CONFIG.secure.includes('fontFamily'));
   assert.ok(FIXED_MERMAID_CONFIG.secure.includes('themeCSS'));
   assert.match(spec.assetHash, /^[a-f0-9]{64}$/);
   assert.match(spec.mermaidConfig.deterministicIDSeed, /^[a-f0-9]{64}$/);

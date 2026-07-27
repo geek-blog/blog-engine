@@ -36,10 +36,12 @@ of Mermaid CLI `11.16.0`, the canonical render policy, and the diagram definitio
 Mermaid's deterministic IDs. Identical definitions share one render and one asset.
 
 The render policy uses Mermaid's default theme, strict security, text-only SVG labels, a transparent background,
-and secure deterministic settings. The session calls the public `renderMermaid` API from the exact-pinned Mermaid
-CLI. It starts one Puppeteer browser only after finding a diagram and permits at most two concurrent renderer pages.
-Each page permits only the CLI's exact bootstrap file, passive browser URLs, and the CLI's internal interception
-origin. Other file, HTTP, HTTPS, FTP, and malformed requests are aborted before diagram rendering.
+and the CLI-bundled `KaTeX_Main` font. Pinning the measurement font prevents host font differences from producing
+different SVG bytes under one content-addressed URL. The session calls the public `renderMermaid` API from the
+exact-pinned Mermaid CLI. It starts one Puppeteer browser only after finding a diagram and permits at most two
+concurrent renderer pages. Each page permits only the CLI's exact bootstrap file, passive browser URLs, and the
+CLI's internal interception origin. Other file, HTTP, HTTPS, FTP, and malformed requests are aborted before diagram
+rendering.
 
 Image alternative text prefers `accDescr`, then `accTitle`, then `<article title> — diagram N`. Invalid diagrams
 report the repository-relative Markdown path, diagram ordinal, opening-fence line, and Mermaid's parse detail.
@@ -62,6 +64,8 @@ removes obsolete SVGs without launching Chromium. A failed render removes only s
 ## Important Patterns And Pitfalls
 
 - Keep the Mermaid CLI and Puppeteer pins exact; renderer output is part of the asset identity.
+- Keep `fontFamily` fixed to a font bundled by the pinned CLI. Falling back to a host font makes renderer geometry
+  environment-dependent and can produce different bytes under the same asset URL.
 - Bump `SVG_OUTPUT_POLICY` whenever SVG sanitization, normalization, or other byte-level post-processing changes so
   browsers and CDNs never reuse an asset URL for different SVG bytes.
 - Do not pass `--no-sandbox`. The runtime must provide Chromium libraries and run as a non-root user.

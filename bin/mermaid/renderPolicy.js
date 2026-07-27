@@ -17,12 +17,14 @@ export const FIXED_MERMAID_CONFIG = Object.freeze({
     'theme',
     'themeCSS',
     'themeVariables',
+    'fontFamily',
     'deterministicIds',
     'deterministicIDSeed',
   ],
   startOnLoad: false,
   htmlLabels: false,
   theme: 'default',
+  fontFamily: 'KaTeX_Main',
   deterministicIds: true,
 });
 

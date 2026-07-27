@@ -18,6 +18,8 @@ const assertPassiveSvg = svg => {
   assert.match(svg, /^<svg\b[^>]*\bviewBox="[^"]+"/);
   assert.match(svg, /^<svg\b[^>]*\bwidth="(?:\d+(?:\.\d*)?|\.\d+)"/);
   assert.match(svg, /^<svg\b[^>]*\bheight="(?:\d+(?:\.\d*)?|\.\d+)"/);
+  assert.match(svg, /KaTeX_Main/);
+  assert.doesNotMatch(svg, /HostileFont/);
   assert.doesNotMatch(svg, /<(?:script|foreignObject|iframe|object|embed|a)\b/i);
   assert.doesNotMatch(svg, /\son[a-z]+\s*=/i);
   assert.doesNotMatch(svg, /\s(?:href|xlink:href|src)=["'](?:javascript:|file:|https?:|\/\/)/i);
@@ -26,6 +28,7 @@ const assertPassiveSvg = svg => {
 
 const unsafeInit = {
   securityLevel: 'loose',
+  fontFamily: 'HostileFont',
   themeCSS: '@import url(https://evil.example/x.css)',
   flowchart: { htmlLabels: true },
 };
