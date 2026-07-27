@@ -18,6 +18,14 @@ test('allows passive SVG with local fragment references', () => {
   assert.doesNotThrow(() => assertSafeMermaidSvg(svg));
 });
 
+test('allows only explicitly trusted inline font resources', () => {
+  const font = 'data:font/woff2;base64,d09GMg==';
+  const svg = `<svg><style>@font-face{src:url(${font})}</style></svg>`;
+
+  assert.doesNotThrow(() => assertSafeMermaidSvg(svg, { allowedCssResources: [font] }));
+  assert.throws(() => assertSafeMermaidSvg(svg), UnsafeMermaidSvgError);
+});
+
 for (const [name, payload] of [
   ['scripts', '<svg><script>alert(1)</script></svg>'],
   ['active links', '<svg><a href="#safe"><text>link</text></a></svg>'],

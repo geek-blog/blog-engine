@@ -13,19 +13,18 @@ const readAssets = directory => new Map(
     .filter(name => /^[a-f0-9]{64}\.svg$/.test(name))
     .map(name => [name, fs.readFileSync(path.join(directory, name), 'utf8')]),
 );
-
 const assertPassiveSvg = svg => {
   assert.match(svg, /^<svg\b[^>]*\bviewBox="[^"]+"/);
   assert.match(svg, /^<svg\b[^>]*\bwidth="(?:\d+(?:\.\d*)?|\.\d+)"/);
   assert.match(svg, /^<svg\b[^>]*\bheight="(?:\d+(?:\.\d*)?|\.\d+)"/);
-  assert.match(svg, /KaTeX_Main/);
+  assert.match(svg, /Noto Sans/);
+  assert.match(svg, /data:font\/woff2;base64,/);
   assert.doesNotMatch(svg, /HostileFont/);
   assert.doesNotMatch(svg, /<(?:script|foreignObject|iframe|object|embed|a)\b/i);
   assert.doesNotMatch(svg, /\son[a-z]+\s*=/i);
   assert.doesNotMatch(svg, /\s(?:href|xlink:href|src)=["'](?:javascript:|file:|https?:|\/\/)/i);
   assert.doesNotMatch(svg, /@import\b/i);
 };
-
 const unsafeInit = {
   securityLevel: 'loose',
   fontFamily: 'HostileFont',
@@ -34,6 +33,11 @@ const unsafeInit = {
 };
 const unsafeDefinition = [
   '```mermaid',
+  '---',
+  'config:',
+  '  fontFamily: HostileFont',
+  '  securityLevel: loose',
+  '---',
   `%%{init: ${JSON.stringify(unsafeInit)}}%%`,
   'flowchart LR',
   '    A["<img src=x onerror=alert(1)>"] --> B["<script>alert(1)</script>"]',
@@ -41,7 +45,6 @@ const unsafeDefinition = [
   '    click B "file:///etc/passwd"',
   '```',
 ].join('\n');
-
 test('real Mermaid CLI renders the six-flowchart fixture deterministically and safely', {
   skip: !enabled && 'set GEEK_BLOG_REAL_MERMAID_TESTS=1 to launch Chromium',
   timeout: 120_000,

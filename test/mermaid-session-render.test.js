@@ -63,6 +63,8 @@ test('shares one browser, deduplicates definitions, and builds base-path URLs', 
   assert.equal(calls[0][2], 'svg');
   assert.equal(calls[0][3].mermaidConfig.securityLevel, 'strict');
   assert.equal(calls[0][3].mermaidConfig.htmlLabels, false);
+  assert.match(calls[0][3].myCSS, /data:font\/woff2;base64,/);
+  assert.match(calls[0][3].myCSS, new RegExp(`#${calls[0][3].svgId} \\*`));
   assert.equal(fs.readdirSync(staging).length, 1);
   assert.equal(output.match(/!\[Description\]\(\/blog\/mermaid\/[a-f0-9]{64}\.svg\)/g)?.length, 2);
 });
