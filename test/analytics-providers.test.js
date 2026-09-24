@@ -16,3 +16,16 @@ test('reports inactive providers without treating them as initialized', async ()
   const result = await initializeProviders({}, providers);
   assert.deepEqual(result, { ga4: false, clarity: false });
 });
+
+test('tags Clarity session with ga4_loaded when GA4 fails or loads', async () => {
+  const calls = [];
+  globalThis.window = { clarity: (...args) => calls.push(args) };
+  try {
+    await initializeProviders({}, { ga4: async () => { throw new Error('blocked'); }, clarity: async () => true });
+    await initializeProviders({}, { ga4: async () => true, clarity: async () => true });
+    await initializeProviders({}, { ga4: async () => false, clarity: async () => true });
+  } finally {
+    delete globalThis.window;
+  }
+  assert.deepEqual(calls, [['set', 'ga4_loaded', 'false'], ['set', 'ga4_loaded', 'true']]);
+});

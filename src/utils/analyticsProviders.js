@@ -43,12 +43,21 @@ export const initializeClarity = async config => {
   return true;
 };
 
+// Lets Clarity sessions be filtered by whether gtag.js loaded (e.g. blocked by ad blockers).
+const tagGa4LoadInClarity = (ga4Result, clarityActive) => {
+  if (!clarityActive || typeof globalThis.window?.clarity !== 'function') return;
+  if (ga4Result.status === 'fulfilled' && ga4Result.value !== true) return;
+  window.clarity('set', 'ga4_loaded', ga4Result.status === 'fulfilled' ? 'true' : 'false');
+};
+
 export const initializeProviders = async (config, providers = {}) => {
   const ga4 = providers.ga4 || initializeGoogleAnalytics;
   const clarity = providers.clarity || initializeClarity;
   const results = await Promise.allSettled([ga4(config), clarity(config)]);
-  return {
+  const status = {
     ga4: results[0].status === 'fulfilled' && results[0].value === true,
     clarity: results[1].status === 'fulfilled' && results[1].value === true,
   };
+  tagGa4LoadInClarity(results[0], status.clarity);
+  return status;
 };
