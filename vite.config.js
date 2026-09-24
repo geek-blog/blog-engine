@@ -6,6 +6,7 @@ import fs from 'fs';
 import { loadBlogConfig } from './src/config/loadBlogConfig.js';
 import { createContentAliases } from './src/content/createContentAliases.js';
 import { mermaidAssetsPlugin } from './src/vite/mermaidAssetsPlugin.js';
+import { staticRoutesPlugin } from './src/vite/StaticRouteEmitter.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -47,6 +48,7 @@ export default defineConfig(async ({ command, mode }) => {
       mermaidAssetsPlugin(projectRoot, config.basePath),
       react(),
       copy404Plugin(),
+      staticRoutesPlugin(projectRoot, config),
     ],
     root: path.resolve(__dirname),
     publicDir: path.resolve(projectRoot, 'public'),
