@@ -4,6 +4,8 @@ export const normalizeAnalyticsConfig = (config = {}) => ({
   allowedHosts: Array.isArray(config.allowedHosts) ? config.allowedHosts : [],
   ga4MeasurementId: config.ga4MeasurementId || '',
   clarityProjectId: config.clarityProjectId || '',
+  betterstackToken: config.betterstackToken || '',
+  betterstackEnvironment: config.betterstackEnvironment || 'production',
   consent: {
     required: config.consent?.required !== false,
     storageKey: config.consent?.storageKey || 'blog.analyticsConsent',
@@ -15,6 +17,8 @@ export const normalizeAnalyticsConfig = (config = {}) => ({
 export const hasValidGa4Id = id => /^G-[A-Z0-9]+$/i.test(id);
 
 export const hasValidClarityId = id => /^[a-z0-9]+$/i.test(id);
+
+export const hasValidBetterstackToken = token => /^[a-z0-9]{16,64}$/i.test(token);
 
 export const isAllowedHost = config => (
   typeof window !== 'undefined' && config.allowedHosts.includes(window.location.hostname)

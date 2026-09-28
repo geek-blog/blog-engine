@@ -1,4 +1,4 @@
-import { hasValidClarityId, hasValidGa4Id } from '../utils/analyticsConfig.js';
+import { hasValidBetterstackToken, hasValidClarityId, hasValidGa4Id } from '../utils/analyticsConfig.js';
 
 const PROFILES = new Set(['local', 'development', 'test', 'testing', 'staging', 'production']);
 const HOST_PATTERN = /^(localhost|(?:\d{1,3}\.){3}\d{1,3}|(?:[a-z0-9-]+\.)*[a-z0-9-]+)$/i;
@@ -35,7 +35,15 @@ const validateProviders = (analytics, diagnostics) => {
   if (analytics.clarityProjectId && !hasValidClarityId(analytics.clarityProjectId)) {
     diagnostics.push('VITE_ANALYTICS_CLARITY_PROJECT_ID contains invalid characters.');
   }
-  if (analytics.enabled && !analytics.ga4MeasurementId && !analytics.clarityProjectId) {
+  if (analytics.betterstackToken && !hasValidBetterstackToken(analytics.betterstackToken)) {
+    diagnostics.push('VITE_ANALYTICS_BETTERSTACK_TOKEN contains invalid characters.');
+  }
+  if (
+    analytics.enabled
+    && !analytics.ga4MeasurementId
+    && !analytics.clarityProjectId
+    && !analytics.betterstackToken
+  ) {
     diagnostics.push('Enabled analytics requires at least one provider ID.');
   }
 };

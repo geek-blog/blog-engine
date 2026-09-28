@@ -18,6 +18,7 @@ const failClosed = config => mergeConfig(config, {
     allowedHosts: [],
     ga4MeasurementId: '',
     clarityProjectId: '',
+    betterstackToken: '',
   },
 });
 

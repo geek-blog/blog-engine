@@ -59,6 +59,8 @@ const readAnalyticsOverrides = (env, diagnostics) => {
     'VITE_ANALYTICS_CLARITY_PROJECT_ID',
     'VITE_CLARITY_PROJECT_ID',
   ));
+  assign(analytics, 'betterstackToken', env.VITE_ANALYTICS_BETTERSTACK_TOKEN);
+  assign(analytics, 'betterstackEnvironment', env.VITE_ANALYTICS_BETTERSTACK_ENVIRONMENT);
   return analytics;
 };
 

@@ -45,6 +45,16 @@ test('supports legacy provider aliases', () => {
   assert.equal(result.config.analytics.clarityProjectId, 'clarity123');
 });
 
+test('reads Better Stack token and environment overrides', () => {
+  const result = resolveBlogConfigResult({}, {
+    ...validProduction,
+    VITE_ANALYTICS_BETTERSTACK_TOKEN: 'b'.repeat(20),
+    VITE_ANALYTICS_BETTERSTACK_ENVIRONMENT: 'staging',
+  });
+  assert.equal(result.config.analytics.betterstackToken, 'b'.repeat(20));
+  assert.equal(result.config.analytics.betterstackEnvironment, 'staging');
+});
+
 test('ignores environment variables outside the whitelist', () => {
   const config = resolveBlogConfig({}, { BLOG_TITLE: 'Injected', VITE_UNKNOWN: 'ignored' });
   assert.equal(config.title, 'My Blog');
@@ -75,5 +85,13 @@ test('production rejects malformed deployment configuration', () => {
   assert.throws(
     () => resolveBlogConfig({}, { ...validProduction, VITE_ANALYTICS_GA4_MEASUREMENT_ID: '' }, { strict: true }),
     /provider ID/,
+  );
+  assert.throws(
+    () => resolveBlogConfig(
+      {},
+      { ...validProduction, VITE_ANALYTICS_BETTERSTACK_TOKEN: 'not valid!' },
+      { strict: true },
+    ),
+    /VITE_ANALYTICS_BETTERSTACK_TOKEN/,
   );
 });

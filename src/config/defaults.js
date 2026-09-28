@@ -15,6 +15,8 @@ export const SAFE_BLOG_DEFAULTS = {
     allowedHosts: [],
     ga4MeasurementId: '',
     clarityProjectId: '',
+    betterstackToken: '',
+    betterstackEnvironment: 'production',
     consent: {
       required: true,
       storageKey: 'blog.analyticsConsent',

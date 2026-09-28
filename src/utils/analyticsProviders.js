@@ -1,16 +1,18 @@
 import {
   canRunAnalytics,
+  hasValidBetterstackToken,
   hasValidClarityId,
   hasValidGa4Id,
 } from './analyticsConfig.js';
 import { ensureGoogleQueue, updateClarityConsent, updateGoogleConsent } from './consentMode.js';
 
-export const loadScript = (id, src) => new Promise((resolve, reject) => {
+export const loadScript = (id, src, { crossOrigin } = {}) => new Promise((resolve, reject) => {
   if (document.getElementById(id)) return resolve();
   const script = document.createElement('script');
   script.id = id;
   script.async = true;
   script.src = src;
+  if (crossOrigin) script.crossOrigin = crossOrigin;
   script.onload = resolve;
   script.onerror = reject;
   document.head.appendChild(script);
@@ -43,6 +45,18 @@ export const initializeClarity = async config => {
   return true;
 };
 
+export const initializeBetterstack = async config => {
+  if (!canRunAnalytics(config) || !hasValidBetterstackToken(config.betterstackToken)) return false;
+  window.betterstack = window.betterstack || function betterstack() {
+    (window.betterstack.q = window.betterstack.q || []).push(arguments);
+  };
+  window.betterstack.l = +new Date();
+  const token = encodeURIComponent(config.betterstackToken);
+  await loadScript('blog-betterstack', `https://betterstack.net/b.js?t=${token}`, { crossOrigin: 'anonymous' });
+  window.betterstack('init', { environment: config.betterstackEnvironment });
+  return true;
+};
+
 // Lets Clarity sessions be filtered by whether gtag.js loaded (e.g. blocked by ad blockers).
 const tagGa4LoadInClarity = (ga4Result, clarityActive) => {
   if (!clarityActive || typeof globalThis.window?.clarity !== 'function') return;
@@ -53,10 +67,12 @@ const tagGa4LoadInClarity = (ga4Result, clarityActive) => {
 export const initializeProviders = async (config, providers = {}) => {
   const ga4 = providers.ga4 || initializeGoogleAnalytics;
   const clarity = providers.clarity || initializeClarity;
-  const results = await Promise.allSettled([ga4(config), clarity(config)]);
+  const betterstack = providers.betterstack || initializeBetterstack;
+  const results = await Promise.allSettled([ga4(config), clarity(config), betterstack(config)]);
   const status = {
     ga4: results[0].status === 'fulfilled' && results[0].value === true,
     clarity: results[1].status === 'fulfilled' && results[1].value === true,
+    betterstack: results[2].status === 'fulfilled' && results[2].value === true,
   };
   tagGa4LoadInClarity(results[0], status.clarity);
   return status;

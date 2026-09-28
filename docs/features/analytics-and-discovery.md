@@ -2,8 +2,9 @@
 
 ## Overview
 
-The engine provides consent-gated GA4 and Microsoft Clarity loading, SPA page views, article engagement events,
-route metadata, and sitemap generation. Provider failures are isolated so one service can remain active.
+The engine provides consent-gated GA4, Microsoft Clarity, and Better Stack RUM loading, SPA page views, article
+engagement events, route metadata, and sitemap generation. Provider failures are isolated so one service can
+remain active.
 
 ## Key Files And Structure
 
@@ -21,9 +22,9 @@ route metadata, and sitemap generation. Provider failures are isolated so one se
 ## How It Works
 
 `src/main.jsx` synchronously queues a denied Google Consent Mode v2 default before React or provider scripts run.
-The provider reads the versioned preference. Acceptance sends a granted analytics update and starts GA4 and
-Clarity independently. Rejection or reopening preferences sends denied updates, enables the GA disable flag,
-clears GA cookies, and pauses route/article tracking.
+The provider reads the versioned preference. Acceptance sends a granted analytics update and starts GA4, Clarity,
+and Better Stack RUM independently. Rejection or reopening preferences sends denied updates, enables the GA
+disable flag, clears GA cookies, and pauses route/article tracking.
 Global Privacy Control forces rejection for the full page session and cannot be overridden by stored or UI choices.
 Clarity receives `stop` on revocation and `start` before consent is granted again on the same page.
 
@@ -42,6 +43,8 @@ overrides:
 - `VITE_ANALYTICS_ALLOWED_HOSTS`
 - `VITE_ANALYTICS_GA4_MEASUREMENT_ID`
 - `VITE_ANALYTICS_CLARITY_PROJECT_ID`
+- `VITE_ANALYTICS_BETTERSTACK_TOKEN`
+- `VITE_ANALYTICS_BETTERSTACK_ENVIRONMENT`
 - `VITE_ANALYTICS_CONSENT_REQUIRED`
 - `VITE_ANALYTICS_STORAGE_KEY`
 - `VITE_ANALYTICS_CONSENT_POLICY_VERSION`
@@ -91,4 +94,4 @@ Cookie removal covers the current hostname and parent-domain candidates used by 
 - Browser-level consent and event tests would complement the current deterministic Node test suite.
 
 ---
-Last updated: 2026-07-23
+Last updated: 2026-09-28
