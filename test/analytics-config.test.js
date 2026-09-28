@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  hasValidBetterstackToken,
   hasValidClarityId,
   hasValidGa4Id,
   normalizeAnalyticsConfig,
@@ -25,6 +26,8 @@ test('validates provider identifiers', () => {
   assert.equal(hasValidGa4Id('G-YOUR-ID'), false);
   assert.equal(hasValidClarityId('abc123xyz'), true);
   assert.equal(hasValidClarityId('project id'), false);
+  assert.equal(hasValidBetterstackToken('a'.repeat(20)), true);
+  assert.equal(hasValidBetterstackToken('too-short'), false);
 });
 
 test('initializes as accepted when an explicit choice is not required', () => {
